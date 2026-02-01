@@ -3,6 +3,8 @@ package project
 import (
 	"encoding/base64"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -59,6 +61,86 @@ func Create(cmd *cobra.Command, project Project) error {
 	}
 
 	return nil
+}
+
+func Upgrade(projectPath string) error {
+	binaryPath := findBinaryPath(projectPath)
+	if binaryPath == "" {
+		return fmt.Errorf("no Umono binary found in %s", projectPath)
+	}
+
+	client := download.NewClient()
+
+	releaseInfo, err := client.GetLatestRelease()
+	if err != nil {
+		return fmt.Errorf("failed to fetch release: %w", err)
+	}
+
+	fmt.Printf("📦 Latest version: %s\n", releaseInfo.Version)
+
+	tmpDir, err := os.MkdirTemp("", "umono-upgrade-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp directory: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := client.DownloadAndExtract(releaseInfo, tmpDir); err != nil {
+		return err
+	}
+
+	newBinaryPath := findBinaryPath(tmpDir)
+	if newBinaryPath == "" {
+		return fmt.Errorf("no binary found in downloaded release")
+	}
+
+	backupPath := binaryPath + ".backup"
+	if err := os.Rename(binaryPath, backupPath); err != nil {
+		return fmt.Errorf("failed to backup existing binary: %w", err)
+	}
+
+	if err := copyFile(newBinaryPath, binaryPath); err != nil {
+		os.Rename(backupPath, binaryPath)
+		return fmt.Errorf("failed to install new binary: %w", err)
+	}
+
+	os.Remove(backupPath)
+
+	return nil
+}
+
+func findBinaryPath(dir string) string {
+	candidates := []string{"umono", "umono-darwin-amd64", "umono-darwin-arm64", "umono-linux-amd64", "umono-linux-arm64"}
+
+	for _, name := range candidates {
+		path := filepath.Join(dir, name)
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			return path
+		}
+	}
+
+	return ""
+}
+
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	sourceInfo, err := sourceFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	destFile, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, sourceInfo.Mode())
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	return err
 }
 
 func hashData(data string) (string, error) {
