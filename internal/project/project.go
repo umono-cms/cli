@@ -57,7 +57,7 @@ func Create(cmd *cobra.Command, project Project) error {
 	err = envEditor.SetValue("APP_ENV", "prod").
 		SetValue("SESSION_DRIVER", "memory").
 		AddBlankLine().
-		SetValue("PORT", ":"+project.Port).
+		SetValue("PORT", project.Port).
 		SetValue("DSN", "umono.db").
 		AddBlankLine().
 		SetValue("USERNAME", "").
