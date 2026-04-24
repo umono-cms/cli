@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	secretinternal "github.com/umono-cms/cli/internal/secret"
+	crypto "github.com/umono-cms/crypto"
 )
 
 var secretCmd = &cobra.Command{
@@ -41,12 +41,12 @@ var secretInitCmd = &cobra.Command{
 			return nil
 		}
 
-		value, err := secretinternal.GenerateHex()
+		key, err := crypto.GenerateKey()
 		if err != nil {
 			return fmt.Errorf("failed to generate UMONO_SECRET: %w", err)
 		}
 
-		if err := prependEnvValue(envPath, "UMONO_SECRET", value); err != nil {
+		if err := prependEnvValue(envPath, "UMONO_SECRET", key.String()); err != nil {
 			return fmt.Errorf("failed to write UMONO_SECRET to .env: %w", err)
 		}
 

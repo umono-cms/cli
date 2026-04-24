@@ -30,7 +30,7 @@ func Create(cmd *cobra.Command, project Project) error {
 	}
 
 	if !result.Compatible {
-		return fmt.Errorf(compatibility.FormatIncompatibleError(result))
+		return fmt.Errorf("%s", compatibility.FormatIncompatibleError(result))
 	}
 
 	releaseInfo, err := client.GetLatestRelease()
@@ -87,7 +87,7 @@ func Upgrade(projectPath string) error {
 	}
 
 	if !result.Compatible {
-		return fmt.Errorf(compatibility.FormatIncompatibleError(result))
+		return fmt.Errorf("%s", compatibility.FormatIncompatibleError(result))
 	}
 
 	releaseInfo, err := client.GetLatestRelease()
