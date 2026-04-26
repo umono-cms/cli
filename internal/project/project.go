@@ -11,6 +11,7 @@ import (
 	"github.com/umono-cms/cli/internal/compatibility"
 	"github.com/umono-cms/cli/internal/confed"
 	"github.com/umono-cms/cli/internal/download"
+	crypto "github.com/umono-cms/crypto"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,7 +31,7 @@ func Create(cmd *cobra.Command, project Project) error {
 	}
 
 	if !result.Compatible {
-		return fmt.Errorf(compatibility.FormatIncompatibleError(result))
+		return fmt.Errorf("%s", compatibility.FormatIncompatibleError(result))
 	}
 
 	releaseInfo, err := client.GetLatestRelease()
@@ -52,9 +53,18 @@ func Create(cmd *cobra.Command, project Project) error {
 		return fmt.Errorf("failed to hash Password: %w", err)
 	}
 
+	secretKey, err := crypto.GenerateKey()
+	if err != nil {
+		return fmt.Errorf("failed to generate UMONO_SECRET: %w", err)
+	}
+
 	envEditor := confed.NewEnvEditor()
-	envEditor.Read(filepath.Join(project.Path, ".env.example"))
-	err = envEditor.SetValue("APP_ENV", "prod").
+	if err := envEditor.Read(filepath.Join(project.Path, ".env.example")); err != nil {
+		return fmt.Errorf("failed to read .env.example: %w", err)
+	}
+
+	err = envEditor.PrependValue("UMONO_SECRET", secretKey.String()).
+		SetValue("APP_ENV", "prod").
 		SetValue("SESSION_DRIVER", "memory").
 		AddBlankLine().
 		SetValue("PORT", project.Port).
@@ -87,7 +97,7 @@ func Upgrade(projectPath string) error {
 	}
 
 	if !result.Compatible {
-		return fmt.Errorf(compatibility.FormatIncompatibleError(result))
+		return fmt.Errorf("%s", compatibility.FormatIncompatibleError(result))
 	}
 
 	releaseInfo, err := client.GetLatestRelease()

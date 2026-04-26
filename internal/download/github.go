@@ -147,7 +147,7 @@ func (c *Client) DownloadAndExtract(info *ReleaseInfo, destDir string) error {
 		return fmt.Errorf("extraction failed: %w", err)
 	}
 
-	fmt.Println("✅ Download completed successfully!\n")
+	fmt.Println("✅ Download completed successfully!")
 	return nil
 }
 

@@ -8,8 +8,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "umono",
-	Short: "Umono CLI",
+	Use:           "umono",
+	Short:         "Umono CLI",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 func Execute() {
