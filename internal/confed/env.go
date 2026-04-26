@@ -62,6 +62,13 @@ func (e *EnvEditor) SetValue(key, value string) *EnvEditor {
 	return e
 }
 
+func (e *EnvEditor) PrependValue(key, value string) *EnvEditor {
+	e.removeKey(key)
+	e.keys = append([]string{key}, e.keys...)
+	e.keyValue[key] = value
+	return e
+}
+
 func (e *EnvEditor) removeKey(key string) {
 	for i, k := range e.keys {
 		if k == key {
