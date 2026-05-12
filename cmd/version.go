@@ -18,5 +18,5 @@ func init() {
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
-	fmt.Println("v" + version.Version)
+	fmt.Fprintln(cmd.OutOrStdout(), version.Display())
 }
