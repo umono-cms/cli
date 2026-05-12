@@ -15,7 +15,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const umonoSecretCryptoInfo = "umono:secrets"
+const umonoSecretCryptoInfo = "umono-secrets"
 
 var secretCmd = &cobra.Command{
 	Use:               "secret",
