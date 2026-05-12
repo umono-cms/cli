@@ -1,6 +1,6 @@
 module github.com/umono-cms/cli
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/google/go-github/v68 v68.0.0
